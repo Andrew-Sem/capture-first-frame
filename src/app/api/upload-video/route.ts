@@ -1,6 +1,5 @@
-// app/api/upload-video/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 export async function POST(req: NextRequest) {
@@ -13,9 +12,12 @@ export async function POST(req: NextRequest) {
 
   const buffer = await video.arrayBuffer();
   const filename = `${Date.now()}_${video.name}`;
-  const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  const filepath = path.join(uploadsDir, filename);
 
   try {
+    // Создаем директорию, если она не существует
+    await mkdir(uploadsDir, { recursive: true });
     await writeFile(filepath, Buffer.from(buffer));
     return NextResponse.json({ success: true, filename });
   } catch (error) {
