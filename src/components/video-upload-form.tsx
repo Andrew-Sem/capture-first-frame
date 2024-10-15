@@ -1,9 +1,11 @@
-"use client"
+"use client";
 
 import { useState, FormEvent, useRef } from 'react';
 
 export const VideoUploadForm = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -21,7 +23,8 @@ export const VideoUploadForm = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Видео успешно загружено:', result);
+        const videoPath = `/uploads/${result.filename}`;
+        setVideoUrl(videoPath); // Устанавливаем ссылку на видео
         
         // Создаем превью видео
         const video = videoRef.current;
@@ -47,7 +50,9 @@ export const VideoUploadForm = () => {
                 });
                 
                 if (imageResponse.ok) {
-                  console.log('Первый кадр сохранен');
+                  const imageResult = await imageResponse.json();
+                  const imagePath = `/uploads/${imageResult.filename}`;
+                  setImageUrl(imagePath); // Устанавливаем ссылку на картинку
                 } else {
                   console.error('Ошибка при сохранении первого кадра');
                 }
@@ -64,14 +69,25 @@ export const VideoUploadForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="file"
-        accept="video/*"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-      />
-      <button type="submit">Загрузить видео</button>
-      <video ref={videoRef} style={{ display: 'none' }} />
-    </form>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="file"
+          accept="video/*"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
+        <button type="submit">Загрузить видео</button>
+        <video ref={videoRef} style={{ display: 'none' }} />
+      </form>
+
+      {/* Если есть ссылки на видео и картинку, отображаем их */}
+      {videoUrl && (
+        <div>
+          <p>Посмотреть:</p>
+          <p>Видео: <a href={videoUrl} target="_blank" rel="noopener noreferrer">{videoUrl}</a></p>
+          {imageUrl && <p>Картинка: <a href={imageUrl} target="_blank" rel="noopener noreferrer">{imageUrl}</a></p>}
+        </div>
+      )}
+    </div>
   );
-}
+};
